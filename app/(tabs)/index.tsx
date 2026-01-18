@@ -1,268 +1,104 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { OSMMap } from '@/components/osm-map';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useProcessionRoute } from '@/hooks/use-procession-route';
-import { useConfig, useProcessions } from '@/hooks/use-processions';
-import type { Procession } from '@/types/data';
+import { useTheme } from '@/contexts/theme-context';
 
-export default function ProcessionMapScreen() {
+export default function InicioScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const insets = useSafeAreaInsets();
+  const { toggleTheme } = useTheme();
 
-  // Get processions data from the new hook
-  const { processions, isLoading: processionsLoading, getActiveProcession, getProcessionsByDay } = useProcessions();
-  const { config, isLoading: configLoading } = useConfig();
+  // Calcular días hasta Semana Santa 2026
+  // Domingo de Ramos: 29 de marzo de 2026
+  const semanaSantaDate = new Date('2026-03-29');
+  const today = new Date();
+  const diffTime = semanaSantaDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // Get the first active procession for display
-  const activeProcession = getActiveProcession() || processions[0];
+  const handleThemeToggle = () => {
+    toggleTheme();
+  };
 
-  // Get the current day processions
-  const currentDay = activeProcession?.day || '';
-  const dayProcessions = currentDay ? getProcessionsByDay(currentDay) : [];
-  
-  // State for selected procession
-  const [selectedProcession, setSelectedProcession] = useState<Procession | null>(null);
-  const [showSelector, setShowSelector] = useState(false);
-
-  // Update selected procession when data loads
-  useEffect(() => {
-    if (!selectedProcession && activeProcession) {
-      setSelectedProcession(activeProcession);
-    }
-  }, [activeProcession, selectedProcession]);
-
-  const procession = selectedProcession;
-
-  // Fetch the real street-following route from OSRM for selected procession
-  const { routeCoordinates, distance, duration, isLoading } = useProcessionRoute(procession);
-
-  // Store all routes for the day
-  const [allRoutes, setAllRoutes] = useState<{ [key: string]: { latitude: number; longitude: number }[] }>({});
-
-  // Load all routes for processions of the day
-  useEffect(() => {
-    const loadAllRoutes = async () => {
-      const routes: { [key: string]: { latitude: number; longitude: number }[] } = {};
-      
-      // For now, use the basic route coordinates from the data
-      // In a real scenario, we could load all from OSRM, but that would be too many API calls
-      dayProcessions.forEach(proc => {
-        routes[proc.id] = proc.route.map(point => ({
-          latitude: point.latitude,
-          longitude: point.longitude,
-        }));
-      });
-      
-      setAllRoutes(routes);
-    };
-    
-    loadAllRoutes();
-  }, [currentDay]);
-
-  // Prepare markers for the map (only for selected procession)
-  const markers = procession ? [
-    // Cruz de Guía marker (front of procession)
-    {
-      id: 'cruz-de-guia',
-      latitude: procession.cruzDeGuia.latitude,
-      longitude: procession.cruzDeGuia.longitude,
-      title: 'Cruz de Guía',
-      description: 'Inicio de la procesión',
-      type: 'cruz_de_guia' as const,
-    },
-    // Paso markers (each float)
-    ...procession.pasos.map((paso) => ({
-      id: paso.id,
-      latitude: paso.currentPosition.latitude,
-      longitude: paso.currentPosition.longitude,
-      title: paso.name,
-      description: paso.type === 'cristo' ? 'Paso de Cristo' : 'Paso de Virgen',
-      type: paso.type === 'cristo' ? 'paso_cristo' as const : 'paso_virgen' as const,
-    })),
-    // Carrera Oficial markers
-    {
-      id: 'carrera-inicio',
-      latitude: procession.carreraOficial.start.latitude,
-      longitude: procession.carreraOficial.start.longitude,
-      title: 'Carrera Oficial',
-      description: 'Inicio',
-      type: 'carrera_oficial' as const,
-    },
-    {
-      id: 'carrera-fin',
-      latitude: procession.carreraOficial.end.latitude,
-      longitude: procession.carreraOficial.end.longitude,
-      title: 'Carrera Oficial',
-      description: 'Fin',
-      type: 'carrera_oficial' as const,
-    },
-  ] : [];
-
-  // Prepare all routes with colors
-  const mapRoutes = dayProcessions.map((proc, index) => {
-    const isSelected = proc.id === selectedProcession?.id;
-    const routeCoords = proc.id === selectedProcession?.id && routeCoordinates.length > 0
-      ? routeCoordinates
-      : allRoutes[proc.id] || [];
-    
-    const brotherhoodColors = config?.brotherhoodColors || [];
-    const darkRouteColors = config?.darkRouteColors || [];
-    
-    return {
-      coordinates: routeCoords,
-      color: isSelected 
-        ? brotherhoodColors[index % brotherhoodColors.length] 
-        : darkRouteColors[index % darkRouteColors.length],
-      weight: isSelected ? 6 : 4,
-      opacity: isSelected ? 0.95 : 0.5,
-    };
-  }).filter(route => route.coordinates.length > 0);
-
-  // Show loading state
-  if (processionsLoading || configLoading || !procession || !config) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.text, marginTop: 16 }]}>Cargando procesiones...</Text>
-      </View>
-    );
-  }
+  const handleSettings = () => {
+    // TODO: Implementar navegación a configuración
+    console.log('Settings pressed');
+  };
 
   return (
-    <View style={styles.container}>
-      {/* OpenStreetMap with all routes */}
-      <OSMMap
-        center={config.huelvaCenter}
-        zoom={16}
-        markers={markers}
-        routes={mapRoutes}
-        primaryColor={colors.primary}
-        secondaryColor={colors.secondary}
-        style={styles.map}
-      />
-
-      {/* Loading indicator for route */}
-      {isLoading && (
-        <View style={[styles.loadingOverlay, { backgroundColor: colors.mapOverlay }]}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Calculando ruta...</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header con botones */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Semana Santa</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.primary }]}>Huelva 2026</Text>
         </View>
-      )}
-
-      {/* Header Overlay */}
-      <View style={[styles.headerOverlay, { paddingTop: insets.top + 8, backgroundColor: colors.mapOverlay }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Semana Santa</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.primary }]}>Huelva 2026</Text>
-      </View>
-
-      {/* Legend */}
-      <View style={[styles.legend, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder }]}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendIcon, { backgroundColor: '#4A1942' }]}>
-            <Text style={styles.legendEmoji}>✝️</Text>
-          </View>
-          <Text style={[styles.legendText, { color: colors.text }]}>Cruz de Guía</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendIcon, { backgroundColor: '#8B0000' }]}>
-            <Text style={styles.legendEmoji}>✟</Text>
-          </View>
-          <Text style={[styles.legendText, { color: colors.text }]}>Paso Cristo</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendIcon, { backgroundColor: '#1E3A5F' }]}>
-            <Text style={styles.legendEmoji}>👑</Text>
-          </View>
-          <Text style={[styles.legendText, { color: colors.text }]}>Paso Virgen</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendIcon, { backgroundColor: '#2E7D32' }]}>
-            <Text style={styles.legendEmoji}>🏛️</Text>
-          </View>
-          <Text style={[styles.legendText, { color: colors.text }]}>Carrera Oficial</Text>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity 
+            style={[styles.iconButton, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder }]}
+            onPress={handleThemeToggle}
+          >
+            <IconSymbol 
+              size={22} 
+              name={colorScheme === 'light' ? 'sun.max.fill' : 'moon.fill'} 
+              color={colors.icon} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.iconButton, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder }]}
+            onPress={handleSettings}
+          >
+            <IconSymbol size={22} name="gearshape.fill" color={colors.icon} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Compact Procession Info Card */}
-      <View style={[styles.infoCard, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder, marginBottom: insets.bottom + 90 }]}>
-        {/* Selector Button */}
-        <TouchableOpacity 
-          style={[styles.selectorButton, { borderColor: colors.cardBorder }]}
-          onPress={() => setShowSelector(true)}
-        >
-          <View style={styles.selectorContent}>
-            <View style={styles.selectorLeft}>
-              <Text style={[styles.processionNameCompact, { color: colors.text }]}>{procession.name}</Text>
-              <Text style={[styles.brotherhoodCompact, { color: colors.icon }]}>
-                {procession.departureTime} • {procession.pasos.length} pasos
-              </Text>
-            </View>
-            <Text style={[styles.chevron, { color: colors.icon }]}>▼</Text>
+      {/* Contenido principal */}
+      <View style={styles.content}>
+        <View style={[styles.countdownCard, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder }]}>
+          <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+            <Text style={styles.iconEmoji}>✝️</Text>
           </View>
-        </TouchableOpacity>
+          
+          <Text style={[styles.countdownLabel, { color: colors.icon }]}>
+            Faltan para la Semana Santa
+          </Text>
+          
+          <View style={styles.countdownNumber}>
+            <Text style={[styles.daysNumber, { color: colors.primary }]}>
+              {diffDays}
+            </Text>
+            <Text style={[styles.daysLabel, { color: colors.text }]}>
+              {diffDays === 1 ? 'día' : 'días'}
+            </Text>
+          </View>
+          
+          <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
+          
+          <View style={styles.dateInfo}>
+            <Text style={[styles.dateLabel, { color: colors.icon }]}>
+              Domingo de Ramos
+            </Text>
+            <Text style={[styles.dateValue, { color: colors.text }]}>
+              29 de Marzo, 2026
+            </Text>
+          </View>
+        </View>
 
-        {/* Status Badge */}
-        <View style={[styles.statusBadgeCompact, { backgroundColor: procession.status === 'in_progress' ? '#2E7D32' : colors.primary }]}>
-          <Text style={styles.statusTextCompact}>
-            {procession.status === 'in_progress' ? '● EN CALLE' : 'PRÓXIMA'}
+        {/* Tarjeta informativa adicional */}
+        <View style={[styles.infoCard, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder }]}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>
+            Bienvenido al Tracker
+          </Text>
+          <Text style={[styles.infoText, { color: colors.icon }]}>
+            Sigue en tiempo real todas las procesiones de la Semana Santa de Huelva. 
+            Consulta horarios, recorridos y detalles de cada hermandad.
           </Text>
         </View>
       </View>
-
-      {/* Procession Selector Modal */}
-      <Modal
-        visible={showSelector}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowSelector(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowSelector(false)}
-        >
-          <View style={[styles.selectorModal, { backgroundColor: colors.cardBackground, marginBottom: insets.bottom }]}>
-            <View style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Hermandades - {currentDay}</Text>
-            
-            <ScrollView style={styles.procesionList}>
-              {dayProcessions.map((proc, index) => (
-                <TouchableOpacity
-                  key={proc.id}
-                  style={[
-                    styles.procesionItem,
-                    { borderColor: colors.cardBorder },
-                    proc.id === selectedProcession?.id && { backgroundColor: colors.primary + '20' }
-                  ]}
-                  onPress={() => {
-                    setSelectedProcession(proc);
-                    setShowSelector(false);
-                  }}
-                >
-                  <View style={[styles.colorIndicator, { backgroundColor: config.brotherhoodColors[index % config.brotherhoodColors.length] }]} />
-                  <View style={styles.procesionInfo}>
-                    <Text style={[styles.procesionItemName, { color: colors.text }]}>{proc.name}</Text>
-                    <Text style={[styles.procesionItemDetails, { color: colors.icon }]}>
-                      {proc.brotherhood}
-                    </Text>
-                    <Text style={[styles.procesionItemTime, { color: colors.icon }]}>
-                      {proc.departureTime} - {proc.returnTime}
-                    </Text>
-                  </View>
-                  {proc.id === selectedProcession?.id && (
-                    <Text style={[styles.checkmark, { color: colors.primary }]}>✓</Text>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 }
@@ -271,189 +107,121 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 80,
-    left: 16,
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  loadingText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  headerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
+  headerLeft: {
+    flex: 1,
+  },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 4,
   },
-  legend: {
-    position: 'absolute',
-    top: 100,
-    right: 12,
-    borderRadius: 12,
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
-    padding: 10,
-    gap: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 2,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  countdownCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
     elevation: 4,
   },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  legendIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 24,
   },
-  legendEmoji: {
-    fontSize: 12,
+  iconEmoji: {
+    fontSize: 40,
   },
-  legendText: {
-    fontSize: 11,
+  countdownLabel: {
+    fontSize: 16,
     fontWeight: '500',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  countdownNumber: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  daysNumber: {
+    fontSize: 72,
+    fontWeight: '800',
+    letterSpacing: -2,
+    lineHeight: 72,
+  },
+  daysLabel: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  divider: {
+    width: '100%',
+    height: 1,
+    marginBottom: 24,
+  },
+  dateInfo: {
+    alignItems: 'center',
+  },
+  dateLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  dateValue: {
+    fontSize: 18,
+    fontWeight: '700',
   },
   infoCard: {
-    position: 'absolute',
-    bottom: 0,
-    left: 16,
-    right: 16,
     borderRadius: 16,
     borderWidth: 1,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 12,
+    padding: 20,
+    marginTop: 20,
   },
-  selectorButton: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 12,
-  },
-  selectorContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  selectorLeft: {
-    flex: 1,
-  },
-  processionNameCompact: {
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  brotherhoodCompact: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 12,
-    marginLeft: 8,
-  },
-  statusBadgeCompact: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  statusTextCompact: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  selectorModal: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    maxHeight: '70%',
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-    opacity: 0.3,
-  },
-  modalTitle: {
+  infoTitle: {
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  procesionList: {
-    flex: 1,
-  },
-  procesionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  colorIndicator: {
-    width: 4,
-    height: 50,
-    borderRadius: 2,
-    marginRight: 12,
-  },
-  procesionInfo: {
-    flex: 1,
-  },
-  procesionItemName: {
+  infoText: {
     fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  procesionItemDetails: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  procesionItemTime: {
-    fontSize: 11,
-  },
-  checkmark: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginLeft: 8,
+    lineHeight: 22,
   },
 });
