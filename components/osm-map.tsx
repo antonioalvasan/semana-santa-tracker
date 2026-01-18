@@ -13,6 +13,8 @@ interface MapMarker {
 interface MapRoute {
   coordinates: { latitude: number; longitude: number }[];
   color: string;
+  weight?: number;
+  opacity?: number;
 }
 
 interface OSMMapProps {
@@ -20,6 +22,7 @@ interface OSMMapProps {
   zoom?: number;
   markers?: MapMarker[];
   route?: MapRoute;
+  routes?: MapRoute[]; // Multiple routes support
   primaryColor?: string;
   secondaryColor?: string;
   style?: object;
@@ -30,6 +33,7 @@ export function OSMMap({
   zoom = 15,
   markers = [],
   route,
+  routes = [],
   primaryColor = '#5D2E8C',
   secondaryColor = '#D4AF37',
   style,
@@ -92,19 +96,21 @@ export function OSMMap({
       })
       .join('\n');
 
-    const routeJS = route
-      ? `
+    // Generate routes - use routes array if provided, otherwise fall back to single route
+    const allRoutes = routes.length > 0 ? routes : (route ? [route] : []);
+    const routesJS = allRoutes
+      .map((r) => `
         L.polyline([
-          ${route.coordinates.map((c) => `[${c.latitude}, ${c.longitude}]`).join(',\n')}
+          ${r.coordinates.map((c) => `[${c.latitude}, ${c.longitude}]`).join(',\n')}
         ], {
-          color: '${route.color}',
-          weight: 5,
-          opacity: 0.9,
+          color: '${r.color}',
+          weight: ${r.weight ?? 5},
+          opacity: ${r.opacity ?? 0.9},
           lineCap: 'round',
           lineJoin: 'round'
         }).addTo(map);
-      `
-      : '';
+      `)
+      .join('\n');
 
     return `
       <!DOCTYPE html>
@@ -197,7 +203,7 @@ export function OSMMap({
             attribution: '© OpenStreetMap'
           }).addTo(map);
           
-          ${routeJS}
+          ${routesJS}
           ${markersJS}
         </script>
       </body>

@@ -42,7 +42,7 @@ export async function getRoute(waypoints: Coordinate[]): Promise<RouteResult> {
 
   try {
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`OSRM API error: ${response.status}`);
     }

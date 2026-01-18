@@ -1,27 +1,71 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { OSMMap } from '@/components/osm-map';
 import { Colors } from '@/constants/theme';
-import { HUELVA_CENTER, MOCK_PROCESSIONS, type Procession } from '@/data/processions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProcessionRoute } from '@/hooks/use-procession-route';
-
-// Get the first active procession for display
-const activeProcession = MOCK_PROCESSIONS.find(p => p.status === 'in_progress') || MOCK_PROCESSIONS[0];
+import { useConfig, useProcessions } from '@/hooks/use-processions';
+import type { Procession } from '@/types/data';
 
 export default function ProcessionMapScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const insets = useSafeAreaInsets();
 
-  const procession: Procession = activeProcession;
+  // Get processions data from the new hook
+  const { processions, isLoading: processionsLoading, getActiveProcession, getProcessionsByDay } = useProcessions();
+  const { config, isLoading: configLoading } = useConfig();
 
-  // Fetch the real street-following route from OSRM
+  // Get the first active procession for display
+  const activeProcession = getActiveProcession() || processions[0];
+
+  // Get the current day processions
+  const currentDay = activeProcession?.day || '';
+  const dayProcessions = currentDay ? getProcessionsByDay(currentDay) : [];
+  
+  // State for selected procession
+  const [selectedProcession, setSelectedProcession] = useState<Procession | null>(null);
+  const [showSelector, setShowSelector] = useState(false);
+
+  // Update selected procession when data loads
+  useEffect(() => {
+    if (!selectedProcession && activeProcession) {
+      setSelectedProcession(activeProcession);
+    }
+  }, [activeProcession, selectedProcession]);
+
+  const procession = selectedProcession;
+
+  // Fetch the real street-following route from OSRM for selected procession
   const { routeCoordinates, distance, duration, isLoading } = useProcessionRoute(procession);
 
-  // Prepare markers for the map
-  const markers = [
+  // Store all routes for the day
+  const [allRoutes, setAllRoutes] = useState<{ [key: string]: { latitude: number; longitude: number }[] }>({});
+
+  // Load all routes for processions of the day
+  useEffect(() => {
+    const loadAllRoutes = async () => {
+      const routes: { [key: string]: { latitude: number; longitude: number }[] } = {};
+      
+      // For now, use the basic route coordinates from the data
+      // In a real scenario, we could load all from OSRM, but that would be too many API calls
+      dayProcessions.forEach(proc => {
+        routes[proc.id] = proc.route.map(point => ({
+          latitude: point.latitude,
+          longitude: point.longitude,
+        }));
+      });
+      
+      setAllRoutes(routes);
+    };
+    
+    loadAllRoutes();
+  }, [currentDay]);
+
+  // Prepare markers for the map (only for selected procession)
+  const markers = procession ? [
     // Cruz de Guía marker (front of procession)
     {
       id: 'cruz-de-guia',
@@ -57,23 +101,46 @@ export default function ProcessionMapScreen() {
       description: 'Fin',
       type: 'carrera_oficial' as const,
     },
-  ];
+  ] : [];
+
+  // Prepare all routes with colors
+  const mapRoutes = dayProcessions.map((proc, index) => {
+    const isSelected = proc.id === selectedProcession?.id;
+    const routeCoords = proc.id === selectedProcession?.id && routeCoordinates.length > 0
+      ? routeCoordinates
+      : allRoutes[proc.id] || [];
+    
+    const brotherhoodColors = config?.brotherhoodColors || [];
+    const darkRouteColors = config?.darkRouteColors || [];
+    
+    return {
+      coordinates: routeCoords,
+      color: isSelected 
+        ? brotherhoodColors[index % brotherhoodColors.length] 
+        : darkRouteColors[index % darkRouteColors.length],
+      weight: isSelected ? 6 : 4,
+      opacity: isSelected ? 0.95 : 0.5,
+    };
+  }).filter(route => route.coordinates.length > 0);
+
+  // Show loading state
+  if (processionsLoading || configLoading || !procession || !config) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text, marginTop: 16 }]}>Cargando procesiones...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* OpenStreetMap with OSRM route */}
+      {/* OpenStreetMap with all routes */}
       <OSMMap
-        center={HUELVA_CENTER}
+        center={config.huelvaCenter}
         zoom={16}
         markers={markers}
-        route={
-          routeCoordinates.length > 0
-            ? {
-                coordinates: routeCoordinates,
-                color: colors.primary,
-              }
-            : undefined
-        }
+        routes={mapRoutes}
         primaryColor={colors.primary}
         secondaryColor={colors.secondary}
         style={styles.map}
@@ -121,61 +188,81 @@ export default function ProcessionMapScreen() {
         </View>
       </View>
 
-      {/* Procession Info Card */}
+      {/* Compact Procession Info Card */}
       <View style={[styles.infoCard, { backgroundColor: colors.cardBackground, borderColor: colors.cardBorder, marginBottom: insets.bottom + 90 }]}>
+        {/* Selector Button */}
+        <TouchableOpacity 
+          style={[styles.selectorButton, { borderColor: colors.cardBorder }]}
+          onPress={() => setShowSelector(true)}
+        >
+          <View style={styles.selectorContent}>
+            <View style={styles.selectorLeft}>
+              <Text style={[styles.processionNameCompact, { color: colors.text }]}>{procession.name}</Text>
+              <Text style={[styles.brotherhoodCompact, { color: colors.icon }]}>
+                {procession.departureTime} • {procession.pasos.length} pasos
+              </Text>
+            </View>
+            <Text style={[styles.chevron, { color: colors.icon }]}>▼</Text>
+          </View>
+        </TouchableOpacity>
+
         {/* Status Badge */}
-        <View style={[styles.statusBadge, { backgroundColor: procession.status === 'in_progress' ? '#2E7D32' : colors.primary }]}>
-          <Text style={styles.statusText}>
+        <View style={[styles.statusBadgeCompact, { backgroundColor: procession.status === 'in_progress' ? '#2E7D32' : colors.primary }]}>
+          <Text style={styles.statusTextCompact}>
             {procession.status === 'in_progress' ? '● EN CALLE' : 'PRÓXIMA'}
           </Text>
         </View>
-
-        {/* Procession Name */}
-        <Text style={[styles.processionName, { color: colors.text }]}>{procession.name}</Text>
-        <Text style={[styles.brotherhood, { color: colors.icon }]}>{procession.brotherhood}</Text>
-
-        {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
-
-        {/* Details Grid */}
-        <View style={styles.detailsGrid}>
-          <View style={styles.detailItem}>
-            <Text style={[styles.detailLabel, { color: colors.icon }]}>Día</Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>{procession.day}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Text style={[styles.detailLabel, { color: colors.icon }]}>Salida</Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>{procession.departureTime}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Text style={[styles.detailLabel, { color: colors.icon }]}>Pasos</Text>
-            <Text style={[styles.detailValue, { color: colors.text }]}>{procession.pasos.length}</Text>
-          </View>
-        </View>
-
-        {/* Route info from OSRM */}
-        {distance && duration && (
-          <>
-            <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
-            <View style={styles.routeInfo}>
-              <View style={styles.routeItem}>
-                <Text style={[styles.routeIcon]}>📏</Text>
-                <Text style={[styles.routeValue, { color: colors.text }]}>{distance}</Text>
-              </View>
-              <View style={styles.routeItem}>
-                <Text style={[styles.routeIcon]}>⏱️</Text>
-                <Text style={[styles.routeValue, { color: colors.text }]}>{duration}</Text>
-              </View>
-            </View>
-          </>
-        )}
-
-        {/* Parish */}
-        <View style={styles.parishContainer}>
-          <Text style={[styles.parishIcon, { color: colors.secondary }]}>📍</Text>
-          <Text style={[styles.parishText, { color: colors.icon }]}>{procession.parish}</Text>
-        </View>
       </View>
+
+      {/* Procession Selector Modal */}
+      <Modal
+        visible={showSelector}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSelector(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSelector(false)}
+        >
+          <View style={[styles.selectorModal, { backgroundColor: colors.cardBackground, marginBottom: insets.bottom }]}>
+            <View style={[styles.modalHandle, { backgroundColor: colors.icon }]} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Hermandades - {currentDay}</Text>
+            
+            <ScrollView style={styles.procesionList}>
+              {dayProcessions.map((proc, index) => (
+                <TouchableOpacity
+                  key={proc.id}
+                  style={[
+                    styles.procesionItem,
+                    { borderColor: colors.cardBorder },
+                    proc.id === selectedProcession?.id && { backgroundColor: colors.primary + '20' }
+                  ]}
+                  onPress={() => {
+                    setSelectedProcession(proc);
+                    setShowSelector(false);
+                  }}
+                >
+                  <View style={[styles.colorIndicator, { backgroundColor: config.brotherhoodColors[index % config.brotherhoodColors.length] }]} />
+                  <View style={styles.procesionInfo}>
+                    <Text style={[styles.procesionItemName, { color: colors.text }]}>{proc.name}</Text>
+                    <Text style={[styles.procesionItemDetails, { color: colors.icon }]}>
+                      {proc.brotherhood}
+                    </Text>
+                    <Text style={[styles.procesionItemTime, { color: colors.icon }]}>
+                      {proc.departureTime} - {proc.returnTime}
+                    </Text>
+                  </View>
+                  {proc.id === selectedProcession?.id && (
+                    <Text style={[styles.checkmark, { color: colors.primary }]}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -258,88 +345,115 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 16,
     right: 16,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 20,
+    padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 12,
   },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 12,
+  selectorButton: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
   },
-  statusText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  processionName: {
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
-  brotherhood: {
-    fontSize: 14,
-    marginTop: 4,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 16,
-  },
-  detailsGrid: {
+  selectorContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  detailItem: {
     alignItems: 'center',
+  },
+  selectorLeft: {
     flex: 1,
   },
-  detailLabel: {
+  processionNameCompact: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  brotherhoodCompact: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  chevron: {
+    fontSize: 12,
+    marginLeft: 8,
+  },
+  statusBadgeCompact: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  statusTextCompact: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  selectorModal: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    maxHeight: '70%',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+    opacity: 0.3,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  procesionList: {
+    flex: 1,
+  },
+  procesionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  colorIndicator: {
+    width: 4,
+    height: 50,
+    borderRadius: 2,
+    marginRight: 12,
+  },
+  procesionInfo: {
+    flex: 1,
+  },
+  procesionItemName: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  procesionItemDetails: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  procesionItemTime: {
     fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    marginBottom: 4,
   },
-  detailValue: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  routeInfo: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 32,
-  },
-  routeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  routeIcon: {
-    fontSize: 16,
-  },
-  routeValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  parishContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  parishIcon: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-  parishText: {
-    fontSize: 13,
-    flex: 1,
+  checkmark: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });

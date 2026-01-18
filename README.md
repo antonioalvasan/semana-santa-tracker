@@ -1,4 +1,26 @@
-# Welcome to your Expo app 👋
+# Semana Santa Tracker
+
+A React Native application built with Expo to track Holy Week processions in Huelva, Spain.
+
+## Architecture
+
+This app uses a modern, scalable architecture with:
+- **Service-based data management** with repository pattern
+- **JSON mock data** (easily switchable to REST API)
+- **Type-safe TypeScript** throughout
+- **Custom React hooks** for clean component integration
+
+📖 **[Read the complete Data Architecture Documentation](./docs/DATA-ARCHITECTURE.md)**
+
+## Features
+
+- Real-time procession tracking on OpenStreetMap
+- Calendar view of all processions
+- Route visualization with OSRM integration
+- Support for multiple processions per day
+- Dark/Light theme support
+
+---
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 

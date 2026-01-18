@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getProcessionRoute, formatDistance, formatDuration, type Coordinate, type RouteResult } from '@/services/routing';
-import type { Procession } from '@/data/processions';
+import type { Procession } from '@/types/data';
 
 interface UseProcessionRouteResult {
   routeCoordinates: Coordinate[];
@@ -15,7 +15,7 @@ interface UseProcessionRouteResult {
  * Hook that fetches the real street-following route for a procession
  * Uses OSRM to calculate the actual walking path through streets
  */
-export function useProcessionRoute(procession: Procession): UseProcessionRouteResult {
+export function useProcessionRoute(procession: Procession | null): UseProcessionRouteResult {
   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
   const [distance, setDistance] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
@@ -23,7 +23,16 @@ export function useProcessionRoute(procession: Procession): UseProcessionRouteRe
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Don't fetch if procession is null
+    if (!procession) {
+      setIsLoading(false);
+      setRouteCoordinates([]);
+      return;
+    }
+
     async function fetchRoute() {
+      if (!procession) return;
+
       setIsLoading(true);
       setError(null);
 
@@ -57,7 +66,7 @@ export function useProcessionRoute(procession: Procession): UseProcessionRouteRe
     }
 
     fetchRoute();
-  }, [procession.id]);
+  }, [procession?.id]);
 
   return {
     routeCoordinates,

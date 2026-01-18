@@ -1,4 +1,22 @@
 /**
+ * @deprecated This file is deprecated and kept only for reference
+ * 
+ * DO NOT import from this file directly in new code.
+ * Instead, use the new data architecture:
+ * 
+ * @example
+ * import { useProcessions } from '@/hooks/use-processions';
+ * 
+ * function MyComponent() {
+ *   const { processions, isLoading } = useProcessions();
+ *   // ...
+ * }
+ * 
+ * See docs/DATA-ARCHITECTURE.md for complete documentation
+ * See docs/MIGRATION-GUIDE.md for migration instructions
+ * 
+ * ---
+ * 
  * Mocked data for Holy Week processions in Huelva, Spain
  * Coordinates represent real streets in Huelva's historic center
  */
@@ -178,4 +196,15 @@ export const getActiveProcession = (): Procession | undefined => {
 // Get procession by ID
 export const getProcessionById = (id: string): Procession | undefined => {
   return MOCK_PROCESSIONS.find(p => p.id === id);
+};
+
+// Get all processions for a specific day
+export const getProcessionsByDay = (day: string): Procession[] => {
+  return MOCK_PROCESSIONS.filter(p => p.day === day);
+};
+
+// Get unique days from all processions
+export const getUniqueDays = (): string[] => {
+  const days = MOCK_PROCESSIONS.map(p => p.day);
+  return Array.from(new Set(days));
 };

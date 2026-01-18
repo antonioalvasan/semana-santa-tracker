@@ -1,0 +1,99 @@
+[
+  {
+    "id": "1",
+    "name": "La Borriquita",
+    "brotherhood": "Hermandad de la Entrada Triunfal en Jerusalén",
+    "day": "Domingo de Ramos",
+    "departureTime": "15:45",
+    "returnTime": "22:30",
+    "parish": "Parroquia de San Pedro",
+    "cruzDeGuia": {
+      "latitude": 37.2612,
+      "longitude": -6.9470
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Jesús en su Entrada Triunfal en Jerusalén",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2598,
+          "longitude": -6.9485
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+"route": [
+  { "latitude": 37.2592, "longitude": -6.9482, "name": "15:45 - Salida: Parroquia de San Pedro" },
+  { "latitude": 37.2592, "longitude": -6.9478, "name": "Plaza de San Pedro" },
+  { "latitude": 37.2581, "longitude": -6.9501, "name": "Paseo Santa Fe" },
+  { "latitude": 37.2568, "longitude": -6.9489, "name": "Tres de Agosto" },
+  { "latitude": 37.2552, "longitude": -6.9496, "name": "Hernán Cortés" },
+  { "latitude": 37.2546, "longitude": -6.9497, "name": "Las Bocas" },
+  { "latitude": 37.2543, "longitude": -6.9492, "name": "18:15 - CARRERA OFICIAL (Inicio - C/ Plus Ultra)" },
+  { "latitude": 37.2554, "longitude": -6.9472, "name": "CARRERA OFICIAL (C/ Concepción)" },
+  { "latitude": 37.2571, "longitude": -6.9449, "name": "19:30 - CARRERA OFICIAL (Fin - Gran Vía / Ayuntamiento)" },
+  { "latitude": 37.2575, "longitude": -6.9455, "name": "Palos de la Frontera" },
+  { "latitude": 37.2591, "longitude": -6.9463, "name": "Plaza Quintero Báez" },
+  { "latitude": 37.2598, "longitude": -6.9478, "name": "La Fuente" },
+  { "latitude": 37.2593, "longitude": -6.9479, "name": "Plaza de San Pedro" },
+  { "latitude": 37.2592, "longitude": -6.9482, "name": "21:45 - Recogida Cruz de Guía" },
+  { "latitude": 37.2592, "longitude": -6.9482, "name": "22:30 - Recogida del Palio" }
+],
+    "status": "in_progress",
+    "description": "La primera procesión de la Semana Santa onubense, representa la entrada triunfal de Jesús en Jerusalén montado en un borrico. Sale de la Parroquia de San Pedro."
+  },
+  {
+    "id": "2",
+    "name": "El Nazareno",
+    "brotherhood": "Hermandad de Nuestro Padre Jesús Nazareno",
+    "day": "Miércoles Santo",
+    "departureTime": "20:00",
+    "returnTime": "03:00",
+    "parish": "Parroquia de San Pedro",
+    "cruzDeGuia": {
+      "latitude": 37.2620,
+      "longitude": -6.9462
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Nuestro Padre Jesús Nazareno",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2605,
+          "longitude": -6.9478
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "María Santísima de los Dolores",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2592,
+          "longitude": -6.9492
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [
+      { "latitude": 37.2650, "longitude": -6.9510, "name": "Parroquia de San Pedro (Salida)" },
+      { "latitude": 37.2642, "longitude": -6.9498, "name": "C/ San Sebastián" },
+      { "latitude": 37.2635, "longitude": -6.9485, "name": "C/ San Sebastián esquina C/ Palacio" },
+      { "latitude": 37.2625, "longitude": -6.9475, "name": "C/ Palacio" },
+      { "latitude": 37.2612, "longitude": -6.9470, "name": "Gran Vía (Carrera Oficial inicio)" },
+      { "latitude": 37.2620, "longitude": -6.9462, "name": "Gran Vía" },
+      { "latitude": 37.2628, "longitude": -6.9453, "name": "Gran Vía (Carrera Oficial fin)" },
+      { "latitude": 37.2640, "longitude": -6.9438, "name": "Catedral de la Merced" },
+      { "latitude": 37.2650, "longitude": -6.9510, "name": "Parroquia de San Pedro (Entrada)" }
+    ],
+    "status": "not_started",
+    "description": "Una de las hermandades más antiguas y queridas de Huelva, con gran devoción popular."
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "huelvaCenter": {
+    "latitude": 37.2578,
+    "longitude": -6.9508
+  },
+  "brotherhoodColors": [
+    "#9C27B0",
+    "#3F51B5",
+    "#2196F3",
+    "#009688",
+    "#FF5722",
+    "#795548"
+  ],
+  "darkRouteColors": [
+    "#1A1A1A",
+    "#2A2A2A",
+    "#3A3A3A",
+    "#252525",
+    "#303030",
+    "#1E1E1E"
+  ]
+}
