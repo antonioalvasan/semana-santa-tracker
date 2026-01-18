@@ -1,29 +1,44 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Theme colors for Semana Santa Tracker - Huelva
+ * Inspired by the rich purples, golds, and deep reds of Holy Week processions
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Holy Week themed colors
+const tintColorLight = '#5D2E8C'; // Deep purple - penitential color
+const tintColorDark = '#D4AF37'; // Gold - color of the thrones
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#1A1A2E',
+    background: '#FAF8F5',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#5D2E8C',
+    tabIconDefault: '#8B7E9B',
     tabIconSelected: tintColorLight,
+    // Semana Santa specific colors
+    primary: '#5D2E8C', // Deep purple
+    secondary: '#D4AF37', // Gold
+    accent: '#8B0000', // Deep red
+    cardBackground: '#FFFFFF',
+    cardBorder: '#E8E0F0',
+    mapOverlay: 'rgba(93, 46, 140, 0.1)',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#F5F3F0',
+    background: '#0D0D1A',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#D4AF37',
+    tabIconDefault: '#7A7A8C',
     tabIconSelected: tintColorDark,
+    // Semana Santa specific colors
+    primary: '#7B4BA8', // Lighter purple for dark mode
+    secondary: '#D4AF37', // Gold
+    accent: '#CD5C5C', // Indian red
+    cardBackground: '#1A1A2E',
+    cardBorder: '#2D2D4A',
+    mapOverlay: 'rgba(212, 175, 55, 0.1)',
   },
 };
 
