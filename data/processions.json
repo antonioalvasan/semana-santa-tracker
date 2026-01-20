@@ -558,5 +558,187 @@
     "route": [],
     "status": "not_started",
     "description": "Última procesión del Viernes Santo, representa el entierro de Cristo."
+  },
+  {
+    "id": "16",
+    "name": "La Soledad",
+    "brotherhood": "Hermandad de Nuestra Señora de la Soledad",
+    "day": "Sábado Santo",
+    "departureTime": "20:00",
+    "returnTime": "00:30",
+    "parish": "Iglesia de San Francisco",
+    "cruzDeGuia": {
+      "latitude": 37.2612,
+      "longitude": -6.9468
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Nuestra Señora de la Soledad",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2612,
+          "longitude": -6.9468
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Procesión de recogimiento en la noche del Sábado Santo, representando el duelo de María."
+  },
+  {
+    "id": "17",
+    "name": "El Duelo",
+    "brotherhood": "Hermandad del Santo Duelo",
+    "day": "Sábado Santo",
+    "departureTime": "21:00",
+    "returnTime": "01:15",
+    "parish": "Parroquia de la Concepción",
+    "cruzDeGuia": {
+      "latitude": 37.2608,
+      "longitude": -6.9475
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Cristo Yacente",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2608,
+          "longitude": -6.9475
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "María Santísima del Duelo",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2606,
+          "longitude": -6.9477
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Procesión solemne que representa el duelo por la muerte de Cristo."
+  },
+  {
+    "id": "18",
+    "name": "El Resucitado",
+    "brotherhood": "Hermandad del Santísimo Cristo Resucitado",
+    "day": "Domingo de Resurrección",
+    "departureTime": "10:00",
+    "returnTime": "14:00",
+    "parish": "Catedral de la Merced",
+    "cruzDeGuia": {
+      "latitude": 37.2625,
+      "longitude": -6.9450
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Cristo Resucitado",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2625,
+          "longitude": -6.9450
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Procesión de gloria que celebra la resurrección de Jesucristo."
+  },
+  {
+    "id": "19",
+    "name": "La Alegría",
+    "brotherhood": "Hermandad de Nuestra Señora de la Alegría",
+    "day": "Domingo de Resurrección",
+    "departureTime": "11:30",
+    "returnTime": "15:00",
+    "parish": "Parroquia de San Pedro",
+    "cruzDeGuia": {
+      "latitude": 37.2598,
+      "longitude": -6.9485
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Encuentro Glorioso",
+        "type": "misterio",
+        "currentPosition": {
+          "latitude": 37.2598,
+          "longitude": -6.9485
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Nuestra Señora de la Alegría",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2596,
+          "longitude": -6.9487
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Procesión festiva que celebra el encuentro de María con su Hijo resucitado."
+  },
+  {
+    "id": "20",
+    "name": "La Aurora",
+    "brotherhood": "Hermandad de la Divina Aurora",
+    "day": "Domingo de Resurrección",
+    "departureTime": "08:00",
+    "returnTime": "12:30",
+    "parish": "Capilla de la Aurora",
+    "cruzDeGuia": {
+      "latitude": 37.2615,
+      "longitude": -6.9462
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Cristo de la Victoria",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2615,
+          "longitude": -6.9462
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "María Santísima de la Aurora",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2613,
+          "longitude": -6.9464
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Primera procesión del Domingo de Resurrección, sale al amanecer."
   }
 ]

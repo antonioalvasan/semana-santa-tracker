@@ -1,11 +1,15 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Dimensions, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState, useRef, useCallback } from 'react';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const DAY_BUTTON_WIDTH = (SCREEN_WIDTH - 32 - 32) / 5.5; // 5 días completos + vistazo de otro
+const DAY_BUTTON_GAP = 8;
 
 import { Colors } from '@/constants/theme';
-import type { Procession } from '@/types/data';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProcessions } from '@/hooks/use-processions';
+import type { Procession } from '@/types/data';
 
 // Mapeo de días de la semana con días de Semana Santa
 const HOLY_WEEK_DAYS = [
@@ -15,6 +19,8 @@ const HOLY_WEEK_DAYS = [
   { date: 3, dayName: 'Miércoles 01', holyDay: 'Miércoles Santo' },
   { date: 4, dayName: 'Jueves 02', holyDay: 'Jueves Santo' },
   { date: 5, dayName: 'Viernes 03', holyDay: 'Viernes Santo' },
+  { date: 6, dayName: 'Sábado 04', holyDay: 'Sábado Santo' },
+  { date: 7, dayName: 'Domingo 05', holyDay: 'Domingo de Resurrección' },
 ];
 
 // Orden de días para ordenar procesiones
@@ -53,6 +59,7 @@ export default function CalendarioScreen() {
   const insets = useSafeAreaInsets();
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+  const daysScrollViewRef = useRef<ScrollView>(null);
   const sectionPositions = useRef<number[]>([]);
   const isUserScrolling = useRef(true);
 
@@ -64,6 +71,22 @@ export default function CalendarioScreen() {
   const allDaysWithProcessions = HOLY_WEEK_DAYS.filter(day => {
     return processionsByDay[day.holyDay] && processionsByDay[day.holyDay].length > 0;
   });
+
+  // Scroll automático en la barra de días cuando cambia el día seleccionado
+  useEffect(() => {
+    if (daysScrollViewRef.current) {
+      // Calcular la posición del día seleccionado
+      const dayPosition = selectedDayIndex * (DAY_BUTTON_WIDTH + DAY_BUTTON_GAP);
+      // Centrar el día seleccionado (restar la mitad del espacio visible menos medio botón)
+      const visibleWidth = SCREEN_WIDTH - 32;
+      const centeredPosition = dayPosition - (visibleWidth / 2) + (DAY_BUTTON_WIDTH / 2);
+      
+      daysScrollViewRef.current.scrollTo({
+        x: Math.max(0, centeredPosition),
+        animated: true,
+      });
+    }
+  }, [selectedDayIndex]);
 
   // Manejar scroll para actualizar el día seleccionado
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -134,10 +157,19 @@ export default function CalendarioScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header con calendario semanal */}
       <View style={[styles.header, { paddingTop: insets.top + 16, borderBottomColor: colors.cardBorder }]}>
-        <View style={styles.weekCalendarContainer}>
+        <ScrollView
+          ref={daysScrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.weekCalendarContainer}
+          snapToInterval={DAY_BUTTON_WIDTH + DAY_BUTTON_GAP}
+          decelerationRate="fast"
+        >
           {allDaysWithProcessions.map((day, index) => {
             let dayAbbrev = '';
             if (day.holyDay === 'Domingo de Ramos') {
+              dayAbbrev = 'Do';
+            } else if (day.holyDay === 'Domingo de Resurrección') {
               dayAbbrev = 'Do';
             } else {
               dayAbbrev = day.holyDay.split(' ')[0].substring(0, 2);
@@ -150,8 +182,9 @@ export default function CalendarioScreen() {
                 key={day.date}
                 style={[
                   styles.dayButton,
+                  { width: DAY_BUTTON_WIDTH },
                   isSelected && { backgroundColor: colors.primary },
-                  { borderColor: colors.cardBorder }
+                  { borderColor: isSelected ? colors.primary : colors.cardBorder }
                 ]}
                 onPress={() => handleDayPress(index)}
                 activeOpacity={0.7}
@@ -171,7 +204,7 @@ export default function CalendarioScreen() {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
       </View>
 
       {/* Scrollable Content */}
@@ -203,56 +236,80 @@ export default function CalendarioScreen() {
               </View>
 
               {/* Tarjetas de procesiones del día */}
-              {dayProcessions.map((procession) => (
-                <TouchableOpacity
-                  key={procession.id}
-                  style={[
-                    styles.processionCard,
-                    {
-                      backgroundColor: colors.cardBackground,
-                      borderColor: colors.cardBorder,
-                    },
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  {/* Contenedor principal horizontal */}
-                  <View style={styles.cardMain}>
-                    {/* Hora */}
-                    <View style={[styles.timeContainer, { backgroundColor: colors.background }]}>
-                      <Text style={[styles.timeText, { color: colors.text }]}>
-                        {procession.departureTime}
-                      </Text>
-                    </View>
+              {dayProcessions.map((procession) => {
+                const isActive = procession.status === 'in_progress';
+                const isReturning = procession.status === 'returning';
+                
+                return (
+                  <TouchableOpacity
+                    key={procession.id}
+                    style={[
+                      styles.processionCard,
+                      {
+                        backgroundColor: colors.cardBackground,
+                        borderColor: isActive ? colors.primary : colors.cardBorder,
+                        borderLeftWidth: isActive || isReturning ? 4 : 1,
+                        borderLeftColor: isActive ? '#4CAF50' : isReturning ? '#FF9800' : colors.cardBorder,
+                      },
+                    ]}
+                    activeOpacity={0.7}
+                  >
+                    {/* Contenedor principal horizontal */}
+                    <View style={styles.cardMain}>
+                      {/* Columna izquierda: Hora y pasos */}
+                      <View style={styles.timeColumn}>
+                        <Text style={[styles.timeText, { color: colors.text }]}>
+                          {procession.departureTime}
+                        </Text>
+                        <Text style={[styles.pasosLabel, { color: colors.icon }]}>
+                          {procession.pasos.length} {procession.pasos.length === 1 ? 'paso' : 'pasos'}
+                        </Text>
+                      </View>
 
-                    {/* Color/Logo de la hermandad */}
-                    <View style={[styles.brotherhoodLogo, { backgroundColor: colors.primary }]}>
-                      <View style={styles.logoInner}>
-                        <Text style={styles.logoText}>IMG</Text>
+                      {/* Logo de la hermandad */}
+                      <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
+                        <Text style={styles.logoText}>✝</Text>
+                      </View>
+
+                      {/* Información de la hermandad */}
+                      <View style={styles.infoContainer}>
+                        <Text style={[styles.processionName, { color: colors.text }]} numberOfLines={1}>
+                          {procession.name}
+                        </Text>
+                        <Text style={[styles.parishName, { color: colors.icon }]} numberOfLines={1}>
+                          {procession.parish}
+                        </Text>
+                        
+                        {/* Detalles adicionales */}
+                        <View style={styles.detailsRow}>
+                          <View style={styles.detailItem}>
+                            <Text style={[styles.detailIcon, { color: colors.icon }]}>🏠</Text>
+                            <Text style={[styles.detailText, { color: colors.icon }]}>
+                              {procession.returnTime}
+                            </Text>
+                          </View>
+                          
+                          {isActive && (
+                            <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>
+                              <Text style={styles.statusText}>En calle</Text>
+                            </View>
+                          )}
+                          {isReturning && (
+                            <View style={[styles.statusBadge, { backgroundColor: '#FF9800' }]}>
+                              <Text style={styles.statusText}>Regresando</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+
+                      {/* Flecha de navegación */}
+                      <View style={styles.arrowContainer}>
+                        <Text style={[styles.arrowIcon, { color: colors.icon }]}>›</Text>
                       </View>
                     </View>
-
-                    {/* Información de la hermandad */}
-                    <View style={styles.infoContainer}>
-                      <Text style={[styles.processionTitle, { color: colors.text }]} numberOfLines={1}>
-                        {procession.name}
-                      </Text>
-                      <Text style={[styles.parishName, { color: colors.icon }]} numberOfLines={1}>
-                        {procession.parish}
-                      </Text>
-                    </View>
-
-                    {/* Número de pasos */}
-                    <View style={[styles.pasosBadge, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
-                      <Text style={[styles.pasosNumber, { color: colors.primary }]}>
-                        {procession.pasos.length}
-                      </Text>
-                      <Text style={[styles.pasosLabel, { color: colors.primary }]}>
-                        Pasos
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           );
         })}
@@ -285,11 +342,10 @@ const styles = StyleSheet.create({
   },
   weekCalendarContainer: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 4,
+    gap: DAY_BUTTON_GAP,
+    paddingHorizontal: 16,
   },
   dayButton: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
@@ -324,90 +380,93 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   processionCard: {
-    borderRadius: 20,
-    borderWidth: 1.5,
-    padding: 14,
-    marginBottom: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardMain: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
-  timeContainer: {
-    minWidth: 60,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 12,
+  timeColumn: {
     alignItems: 'center',
+    minWidth: 50,
   },
   timeText: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
-  brotherhoodLogo: {
-    width: 52,
-    height: 52,
+  pasosLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  logoContainer: {
+    width: 40,
+    height: 40,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{ rotate: '45deg' }],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoInner: {
-    transform: [{ rotate: '-45deg' }],
   },
   logoText: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 18,
   },
   infoContainer: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
-  processionTitle: {
+  processionName: {
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.2,
-    lineHeight: 20,
   },
   parishName: {
     fontSize: 12,
     fontWeight: '500',
-    lineHeight: 16,
   },
-  pasosBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 14,
-    borderWidth: 1.5,
+  detailsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 60,
+    marginTop: 4,
+    gap: 8,
   },
-  pasosNumber: {
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    lineHeight: 20,
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  pasosLabel: {
+  detailIcon: {
+    fontSize: 10,
+  },
+  detailText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  statusText: {
+    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 2,
+  },
+  arrowContainer: {
+    paddingLeft: 4,
+  },
+  arrowIcon: {
+    fontSize: 24,
+    fontWeight: '300',
   },
   emptyState: {
     alignItems: 'center',
