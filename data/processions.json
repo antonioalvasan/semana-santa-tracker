@@ -26,32 +26,200 @@
       "start": { "latitude": 37.2612, "longitude": -6.9470 },
       "end": { "latitude": 37.2628, "longitude": -6.9453 }
     },
-"route": [
-  { "latitude": 37.2592, "longitude": -6.9482, "name": "15:45 - Salida: Parroquia de San Pedro" },
-  { "latitude": 37.2592, "longitude": -6.9478, "name": "Plaza de San Pedro" },
-  { "latitude": 37.2581, "longitude": -6.9501, "name": "Paseo Santa Fe" },
-  { "latitude": 37.2568, "longitude": -6.9489, "name": "Tres de Agosto" },
-  { "latitude": 37.2552, "longitude": -6.9496, "name": "Hernán Cortés" },
-  { "latitude": 37.2546, "longitude": -6.9497, "name": "Las Bocas" },
-  { "latitude": 37.2543, "longitude": -6.9492, "name": "18:15 - CARRERA OFICIAL (Inicio - C/ Plus Ultra)" },
-  { "latitude": 37.2554, "longitude": -6.9472, "name": "CARRERA OFICIAL (C/ Concepción)" },
-  { "latitude": 37.2571, "longitude": -6.9449, "name": "19:30 - CARRERA OFICIAL (Fin - Gran Vía / Ayuntamiento)" },
-  { "latitude": 37.2575, "longitude": -6.9455, "name": "Palos de la Frontera" },
-  { "latitude": 37.2591, "longitude": -6.9463, "name": "Plaza Quintero Báez" },
-  { "latitude": 37.2598, "longitude": -6.9478, "name": "La Fuente" },
-  { "latitude": 37.2593, "longitude": -6.9479, "name": "Plaza de San Pedro" },
-  { "latitude": 37.2592, "longitude": -6.9482, "name": "21:45 - Recogida Cruz de Guía" },
-  { "latitude": 37.2592, "longitude": -6.9482, "name": "22:30 - Recogida del Palio" }
-],
-    "status": "in_progress",
-    "description": "La primera procesión de la Semana Santa onubense, representa la entrada triunfal de Jesús en Jerusalén montado en un borrico. Sale de la Parroquia de San Pedro."
+    "route": [
+      { "latitude": 37.259811, "longitude": -6.950813, "name": "15:45 - Salida: Parroquia de San Pedro" }
+    ],
+    "status": "not_started",
+    "description": "La primera procesión de la Semana Santa onubense, representa la entrada triunfal de Jesús en Jerusalén montado en un borrico."
   },
   {
     "id": "2",
+    "name": "El Cautivo",
+    "brotherhood": "Hermandad de Nuestro Padre Jesús Cautivo",
+    "day": "Lunes Santo",
+    "departureTime": "18:30",
+    "returnTime": "01:00",
+    "parish": "Capilla del Carmen",
+    "cruzDeGuia": {
+      "latitude": 37.2615,
+      "longitude": -6.9465
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Nuestro Padre Jesús Cautivo",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2615,
+          "longitude": -6.9465
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "María Santísima de la Esperanza",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2610,
+          "longitude": -6.9470
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Hermandad fundada en 1940, con gran devoción popular en el barrio del Carmen."
+  },
+  {
+    "id": "3",
+    "name": "La Oración en el Huerto",
+    "brotherhood": "Hermandad de la Oración en el Huerto",
+    "day": "Lunes Santo",
+    "departureTime": "19:00",
+    "returnTime": "02:15",
+    "parish": "Parroquia de la Concepción",
+    "cruzDeGuia": {
+      "latitude": 37.2608,
+      "longitude": -6.9475
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Jesús Orando en el Huerto de los Olivos",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2608,
+          "longitude": -6.9475
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Representa el momento en que Jesús ora en el Huerto de Getsemaní antes de su pasión."
+  },
+  {
+    "id": "4",
+    "name": "El Perdón",
+    "brotherhood": "Hermandad del Santísimo Cristo del Perdón",
+    "day": "Martes Santo",
+    "departureTime": "17:45",
+    "returnTime": "00:30",
+    "parish": "Capilla de San Sebastián",
+    "cruzDeGuia": {
+      "latitude": 37.2618,
+      "longitude": -6.9460
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Santísimo Cristo del Perdón",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2618,
+          "longitude": -6.9460
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Nuestra Señora del Mayor Dolor",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2615,
+          "longitude": -6.9463
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Una de las hermandades más antiguas de Huelva, fundada en el siglo XVII."
+  },
+  {
+    "id": "5",
+    "name": "La Columna",
+    "brotherhood": "Hermandad de Jesús Amarrado a la Columna",
+    "day": "Martes Santo",
+    "departureTime": "18:15",
+    "returnTime": "01:15",
+    "parish": "Parroquia de San Francisco",
+    "cruzDeGuia": {
+      "latitude": 37.2605,
+      "longitude": -6.9480
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Jesús Amarrado a la Columna",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2605,
+          "longitude": -6.9480
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Representa el momento de la flagelación de Cristo atado a la columna."
+  },
+  {
+    "id": "6",
+    "name": "Los Estudiantes",
+    "brotherhood": "Hermandad Universitaria del Nazareno",
+    "day": "Martes Santo",
+    "departureTime": "19:30",
+    "returnTime": "02:45",
+    "parish": "Capilla de la Universidad",
+    "cruzDeGuia": {
+      "latitude": 37.2622,
+      "longitude": -6.9455
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Nuestro Padre Jesús Nazareno",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2622,
+          "longitude": -6.9455
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "María Santísima de las Lágrimas",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2620,
+          "longitude": -6.9458
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Hermandad universitaria conocida por su juventud y fervor."
+  },
+  {
+    "id": "7",
     "name": "El Nazareno",
     "brotherhood": "Hermandad de Nuestro Padre Jesús Nazareno",
     "day": "Miércoles Santo",
-    "departureTime": "20:00",
+    "departureTime": "16:00",
     "returnTime": "03:00",
     "parish": "Parroquia de San Pedro",
     "cruzDeGuia": {
@@ -84,16 +252,311 @@
     },
     "route": [
       { "latitude": 37.2650, "longitude": -6.9510, "name": "Parroquia de San Pedro (Salida)" },
-      { "latitude": 37.2642, "longitude": -6.9498, "name": "C/ San Sebastián" },
-      { "latitude": 37.2635, "longitude": -6.9485, "name": "C/ San Sebastián esquina C/ Palacio" },
-      { "latitude": 37.2625, "longitude": -6.9475, "name": "C/ Palacio" },
-      { "latitude": 37.2612, "longitude": -6.9470, "name": "Gran Vía (Carrera Oficial inicio)" },
-      { "latitude": 37.2620, "longitude": -6.9462, "name": "Gran Vía" },
-      { "latitude": 37.2628, "longitude": -6.9453, "name": "Gran Vía (Carrera Oficial fin)" },
-      { "latitude": 37.2640, "longitude": -6.9438, "name": "Catedral de la Merced" },
-      { "latitude": 37.2650, "longitude": -6.9510, "name": "Parroquia de San Pedro (Entrada)" }
+      { "latitude": 37.2642, "longitude": -6.9498, "name": "C/ San Sebastián" }
     ],
     "status": "not_started",
     "description": "Una de las hermandades más antiguas y queridas de Huelva, con gran devoción popular."
+  },
+  {
+    "id": "8",
+    "name": "La Esperanza",
+    "brotherhood": "Hermandad de la Sagrada Esperanza",
+    "day": "Miércoles Santo",
+    "departureTime": "17:00",
+    "returnTime": "01:30",
+    "parish": "Iglesia de la Merced",
+    "cruzDeGuia": {
+      "latitude": 37.2625,
+      "longitude": -6.9450
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Cristo de la Sagrada Esperanza",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2625,
+          "longitude": -6.9450
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Virgen de la Esperanza",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2623,
+          "longitude": -6.9452
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Sale de la Catedral de la Merced con una gran procesión de luz."
+  },
+  {
+    "id": "9",
+    "name": "La Cena",
+    "brotherhood": "Hermandad de la Sagrada Cena",
+    "day": "Jueves Santo",
+    "departureTime": "15:00",
+    "returnTime": "22:00",
+    "parish": "Parroquia del Salvador",
+    "cruzDeGuia": {
+      "latitude": 37.2610,
+      "longitude": -6.9468
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "La Sagrada Cena",
+        "type": "misterio",
+        "currentPosition": {
+          "latitude": 37.2610,
+          "longitude": -6.9468
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Representa la Última Cena de Jesús con sus apóstoles."
+  },
+  {
+    "id": "10",
+    "name": "La Verónica",
+    "brotherhood": "Hermandad de la Santa Verónica",
+    "day": "Jueves Santo",
+    "departureTime": "16:30",
+    "returnTime": "00:15",
+    "parish": "Capilla de Santa Teresa",
+    "cruzDeGuia": {
+      "latitude": 37.2600,
+      "longitude": -6.9485
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Jesús Camino del Calvario",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2600,
+          "longitude": -6.9485
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Santa Verónica",
+        "type": "misterio",
+        "currentPosition": {
+          "latitude": 37.2598,
+          "longitude": -6.9487
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Recrea el momento en que la Verónica enjuga el rostro de Jesús."
+  },
+  {
+    "id": "11",
+    "name": "La Estrella",
+    "brotherhood": "Hermandad de Nuestra Señora de la Estrella",
+    "day": "Jueves Santo",
+    "departureTime": "18:00",
+    "returnTime": "02:30",
+    "parish": "Parroquia de la Milagrosa",
+    "cruzDeGuia": {
+      "latitude": 37.2595,
+      "longitude": -6.9490
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Cristo de la Buena Muerte",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2595,
+          "longitude": -6.9490
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Nuestra Señora de la Estrella",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2593,
+          "longitude": -6.9492
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Hermandad conocida por su elegancia y recogimiento."
+  },
+  {
+    "id": "12",
+    "name": "El Silencio",
+    "brotherhood": "Hermandad del Santísimo Cristo del Silencio",
+    "day": "Viernes Santo",
+    "departureTime": "00:00",
+    "returnTime": "04:30",
+    "parish": "Parroquia de San Sebastián",
+    "cruzDeGuia": {
+      "latitude": 37.2630,
+      "longitude": -6.9445
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Cristo del Silencio",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2630,
+          "longitude": -6.9445
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Procesión de madrugada en absoluto silencio, una de las más emotivas."
+  },
+  {
+    "id": "13",
+    "name": "Los Gitanos",
+    "brotherhood": "Hermandad de la Bofetá",
+    "day": "Viernes Santo",
+    "departureTime": "06:00",
+    "returnTime": "11:30",
+    "parish": "Capilla del Señor de la Bofetá",
+    "cruzDeGuia": {
+      "latitude": 37.2588,
+      "longitude": -6.9500
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Señor de la Bofetá",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2588,
+          "longitude": -6.9500
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Virgen de las Angustias",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2586,
+          "longitude": -6.9502
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Hermandad gitana con gran devoción y emoción en su procesión."
+  },
+  {
+    "id": "14",
+    "name": "El Descendimiento",
+    "brotherhood": "Hermandad del Santo Descendimiento",
+    "day": "Viernes Santo",
+    "departureTime": "12:00",
+    "returnTime": "18:00",
+    "parish": "Parroquia de la Concepción",
+    "cruzDeGuia": {
+      "latitude": 37.2608,
+      "longitude": -6.9475
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "El Descendimiento de la Cruz",
+        "type": "misterio",
+        "currentPosition": {
+          "latitude": 37.2608,
+          "longitude": -6.9475
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Nuestra Señora del Primer Dolor",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2606,
+          "longitude": -6.9477
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Representa el momento en que Cristo es bajado de la cruz."
+  },
+  {
+    "id": "15",
+    "name": "El Santo Entierro",
+    "brotherhood": "Hermandad del Santo Entierro",
+    "day": "Viernes Santo",
+    "departureTime": "19:30",
+    "returnTime": "23:45",
+    "parish": "Catedral de la Merced",
+    "cruzDeGuia": {
+      "latitude": 37.2625,
+      "longitude": -6.9450
+    },
+    "pasos": [
+      {
+        "id": "paso-1",
+        "name": "Santo Sepulcro",
+        "type": "cristo",
+        "currentPosition": {
+          "latitude": 37.2625,
+          "longitude": -6.9450
+        }
+      },
+      {
+        "id": "paso-2",
+        "name": "Virgen de la Soledad",
+        "type": "virgen",
+        "currentPosition": {
+          "latitude": 37.2623,
+          "longitude": -6.9452
+        }
+      }
+    ],
+    "carreraOficial": {
+      "start": { "latitude": 37.2612, "longitude": -6.9470 },
+      "end": { "latitude": 37.2628, "longitude": -6.9453 }
+    },
+    "route": [],
+    "status": "not_started",
+    "description": "Última procesión del Viernes Santo, representa el entierro de Cristo."
   }
 ]

@@ -1,31 +1,41 @@
-import { ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState, useRef, useCallback } from 'react';
 
 import { Colors } from '@/constants/theme';
 import type { Procession } from '@/types/data';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useProcessions } from '@/hooks/use-processions';
 
-// Sort processions by day order (you can customize this order)
-const dayOrder = {
-  'Domingo de Ramos': 1,
-  'Lunes Santo': 2,
-  'Martes Santo': 3,
-  'Miércoles Santo': 4,
-  'Jueves Santo': 5,
-  'Viernes Santo': 6,
-  'Sábado Santo': 7,
-  'Domingo de Resurrección': 8,
+// Mapeo de días de la semana con días de Semana Santa
+const HOLY_WEEK_DAYS = [
+  { date: 0, dayName: 'Domingo 29', holyDay: 'Domingo de Ramos' },
+  { date: 1, dayName: 'Lunes 30', holyDay: 'Lunes Santo' },
+  { date: 2, dayName: 'Martes 31', holyDay: 'Martes Santo' },
+  { date: 3, dayName: 'Miércoles 01', holyDay: 'Miércoles Santo' },
+  { date: 4, dayName: 'Jueves 02', holyDay: 'Jueves Santo' },
+  { date: 5, dayName: 'Viernes 03', holyDay: 'Viernes Santo' },
+];
+
+// Orden de días para ordenar procesiones
+const dayOrder: { [key: string]: number } = {
+  'Domingo de Ramos': 0,
+  'Lunes Santo': 1,
+  'Martes Santo': 2,
+  'Miércoles Santo': 3,
+  'Jueves Santo': 4,
+  'Viernes Santo': 5,
+  'Sábado Santo': 6,
+  'Domingo de Resurrección': 7,
 };
 
 const getProcessionsByDay = (allProcessions: Procession[]) => {
   const sorted = [...allProcessions].sort((a, b) => {
-    const orderA = dayOrder[a.day as keyof typeof dayOrder] || 99;
-    const orderB = dayOrder[b.day as keyof typeof dayOrder] || 99;
+    const orderA = dayOrder[a.day] ?? 99;
+    const orderB = dayOrder[b.day] ?? 99;
     return orderA - orderB;
   });
 
-  // Group by day
   const grouped: { [key: string]: Procession[] } = {};
   sorted.forEach((procession) => {
     if (!grouped[procession.day]) {
@@ -41,67 +51,160 @@ export default function CalendarioScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const insets = useSafeAreaInsets();
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const sectionPositions = useRef<number[]>([]);
+  const isUserScrolling = useRef(true);
 
-  // Get processions data from the new hook
+  // Obtener datos de procesiones
   const { processions, isLoading } = useProcessions();
-
   const processionsByDay = getProcessionsByDay(processions);
 
-  // Show loading state
+  // Obtener todos los días que tienen procesiones, ordenados
+  const allDaysWithProcessions = HOLY_WEEK_DAYS.filter(day => {
+    return processionsByDay[day.holyDay] && processionsByDay[day.holyDay].length > 0;
+  });
+
+  // Manejar scroll para actualizar el día seleccionado
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (!isUserScrolling.current) return;
+    
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const labelHeight = 50; // Altura del label del día
+
+    // Encontrar el día actual basándose en el scroll
+    let newSelectedIndex = 0;
+    
+    for (let i = 0; i < sectionPositions.current.length; i++) {
+      const sectionTop = sectionPositions.current[i];
+      const labelExitPoint = sectionTop + labelHeight;
+      
+      // Si el scroll ha pasado el punto donde el label sale de la pantalla
+      if (scrollY >= labelExitPoint) {
+        // Seleccionar el siguiente día si existe
+        if (i + 1 < sectionPositions.current.length) {
+          newSelectedIndex = i + 1;
+        } else {
+          newSelectedIndex = i;
+        }
+      } else {
+        break;
+      }
+    }
+    
+    if (newSelectedIndex !== selectedDayIndex) {
+      setSelectedDayIndex(newSelectedIndex);
+    }
+  }, [selectedDayIndex]);
+
+  // Manejar clic en un día del calendario
+  const handleDayPress = useCallback((index: number) => {
+    setSelectedDayIndex(index);
+    
+    const sectionTop = sectionPositions.current[index];
+    if (sectionTop !== undefined) {
+      isUserScrolling.current = false;
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(0, sectionTop - 10),
+        animated: true,
+      });
+      // Reactivar el tracking de scroll después de la animación
+      setTimeout(() => {
+        isUserScrolling.current = true;
+      }, 500);
+    }
+  }, []);
+
+  // Guardar posición de una sección
+  const handleSectionLayout = useCallback((index: number, y: number) => {
+    sectionPositions.current[index] = y;
+  }, []);
+
+  // Mostrar estado de carga
   if (isLoading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.emptyText, { color: colors.text, marginTop: 16 }]}>Cargando procesiones...</Text>
+        <Text style={[styles.loadingText, { color: colors.text, marginTop: 16 }]}>Cargando procesiones...</Text>
       </View>
     );
   }
 
-  const getStatusInfo = (status: Procession['status']) => {
-    switch (status) {
-      case 'in_progress':
-        return { text: '● EN CALLE', color: '#2E7D32' };
-      case 'returning':
-        return { text: '● REGRESO', color: '#F57C00' };
-      case 'finished':
-        return { text: '● FINALIZADA', color: '#616161' };
-      default:
-        return { text: 'PRÓXIMA', color: colors.primary };
-    }
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16, backgroundColor: colors.background }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Calendario</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.primary }]}>Semana Santa 2026</Text>
+      {/* Header con calendario semanal */}
+      <View style={[styles.header, { paddingTop: insets.top + 16, borderBottomColor: colors.cardBorder }]}>
+        <View style={styles.weekCalendarContainer}>
+          {allDaysWithProcessions.map((day, index) => {
+            let dayAbbrev = '';
+            if (day.holyDay === 'Domingo de Ramos') {
+              dayAbbrev = 'Do';
+            } else {
+              dayAbbrev = day.holyDay.split(' ')[0].substring(0, 2);
+            }
+            const dayNumber = day.dayName.split(' ')[1];
+            const isSelected = selectedDayIndex === index;
+            
+            return (
+              <TouchableOpacity
+                key={day.date}
+                style={[
+                  styles.dayButton,
+                  isSelected && { backgroundColor: colors.primary },
+                  { borderColor: colors.cardBorder }
+                ]}
+                onPress={() => handleDayPress(index)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.dayShort,
+                  { color: isSelected ? '#FFFFFF' : colors.text }
+                ]}>
+                  {dayAbbrev}
+                </Text>
+                <Text style={[
+                  styles.dayDate,
+                  { color: isSelected ? '#FFFFFF' : colors.text }
+                ]}>
+                  {dayNumber}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {/* Scrollable Content */}
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 90 }]}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
-        {Object.entries(processionsByDay).map(([day, processions]) => (
-          <View key={day} style={styles.daySection}>
-            {/* Day Header */}
-            <View style={[styles.dayHeader, { borderBottomColor: colors.cardBorder }]}>
-              <Text style={[styles.dayTitle, { color: colors.text }]}>{day}</Text>
-              <View style={[styles.dayBadge, { backgroundColor: colors.primary + '20' }]}>
-                <Text style={[styles.dayBadgeText, { color: colors.primary }]}>
-                  {processions.length} {processions.length === 1 ? 'procesión' : 'procesiones'}
+        {/* Mostrar todas las procesiones de todos los días */}
+        {allDaysWithProcessions.map((dayInfo, dayIndex) => {
+          const dayProcessions = processionsByDay[dayInfo.holyDay] || [];
+          
+          return (
+            <View 
+              key={dayInfo.holyDay} 
+              style={styles.daySection}
+              onLayout={(event) => {
+                handleSectionLayout(dayIndex, event.nativeEvent.layout.y);
+              }}
+            >
+              {/* Título del día */}
+              <View style={styles.dayHeader}>
+                <Text style={[styles.dayTitle, { color: colors.text }]}>
+                  {dayInfo.dayName} - {dayInfo.holyDay}
                 </Text>
               </View>
-            </View>
 
-            {/* Processions for this day */}
-            {processions.map((procession) => {
-              const statusInfo = getStatusInfo(procession.status);
-              
-              return (
-                <View
+              {/* Tarjetas de procesiones del día */}
+              {dayProcessions.map((procession) => (
+                <TouchableOpacity
                   key={procession.id}
                   style={[
                     styles.processionCard,
@@ -110,74 +213,52 @@ export default function CalendarioScreen() {
                       borderColor: colors.cardBorder,
                     },
                   ]}
+                  activeOpacity={0.7}
                 >
-                  {/* Status Badge */}
-                  {procession.status !== 'not_started' && (
-                    <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
-                      <Text style={styles.statusText}>{statusInfo.text}</Text>
+                  {/* Contenedor principal horizontal */}
+                  <View style={styles.cardMain}>
+                    {/* Hora */}
+                    <View style={[styles.timeContainer, { backgroundColor: colors.background }]}>
+                      <Text style={[styles.timeText, { color: colors.text }]}>
+                        {procession.departureTime}
+                      </Text>
                     </View>
-                  )}
 
-                  {/* Time Badge */}
-                  <View style={[styles.timeBadge, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.timeIcon}>🕐</Text>
-                    <Text style={styles.timeText}>{procession.departureTime}</Text>
-                  </View>
+                    {/* Color/Logo de la hermandad */}
+                    <View style={[styles.brotherhoodLogo, { backgroundColor: colors.primary }]}>
+                      <View style={styles.logoInner}>
+                        <Text style={styles.logoText}>IMG</Text>
+                      </View>
+                    </View>
 
-                  {/* Procession Name */}
-                  <Text style={[styles.processionName, { color: colors.text }]}>
-                    {procession.name}
-                  </Text>
-
-                  {/* Brotherhood */}
-                  <Text style={[styles.brotherhood, { color: colors.icon }]}>
-                    {procession.brotherhood}
-                  </Text>
-
-                  {/* Divider */}
-                  <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
-
-                  {/* Details */}
-                  <View style={styles.details}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailIcon}>📍</Text>
-                      <Text style={[styles.detailText, { color: colors.icon }]} numberOfLines={1}>
+                    {/* Información de la hermandad */}
+                    <View style={styles.infoContainer}>
+                      <Text style={[styles.processionTitle, { color: colors.text }]} numberOfLines={1}>
+                        {procession.name}
+                      </Text>
+                      <Text style={[styles.parishName, { color: colors.icon }]} numberOfLines={1}>
                         {procession.parish}
                       </Text>
                     </View>
 
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailIcon}>✝️</Text>
-                      <Text style={[styles.detailText, { color: colors.icon }]}>
-                        {procession.pasos.length} {procession.pasos.length === 1 ? 'paso' : 'pasos'}
+                    {/* Número de pasos */}
+                    <View style={[styles.pasosBadge, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
+                      <Text style={[styles.pasosNumber, { color: colors.primary }]}>
+                        {procession.pasos.length}
                       </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailIcon}>🏠</Text>
-                      <Text style={[styles.detailText, { color: colors.icon }]}>
-                        Regreso: {procession.returnTime}
+                      <Text style={[styles.pasosLabel, { color: colors.primary }]}>
+                        Pasos
                       </Text>
                     </View>
                   </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          );
+        })}
 
-                  {/* Description */}
-                  {procession.description && (
-                    <>
-                      <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
-                      <Text style={[styles.description, { color: colors.icon }]} numberOfLines={2}>
-                        {procession.description}
-                      </Text>
-                    </>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        ))}
-
-        {/* Empty State */}
-        {Object.keys(processionsByDay).length === 0 && (
+        {/* Estado vacío si no hay procesiones */}
+        {allDaysWithProcessions.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📅</Text>
             <Text style={[styles.emptyTitle, { color: colors.text }]}>
@@ -198,129 +279,135 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: -0.5,
+  weekCalendarContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 4,
   },
-  headerSubtitle: {
-    fontSize: 16,
+  dayButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  dayShort: {
+    fontSize: 14,
     fontWeight: '600',
-    marginTop: 4,
+    marginBottom: 4,
+  },
+  dayDate: {
+    fontSize: 16,
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
-    gap: 24,
   },
   daySection: {
-    gap: 16,
+    marginBottom: 32,
   },
   dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 12,
-    borderBottomWidth: 2,
+    marginBottom: 16,
+    paddingTop: 8,
   },
   dayTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: -0.3,
-  },
-  dayBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  dayBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
   },
   processionCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    padding: 14,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  statusBadge: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  timeBadge: {
-    alignSelf: 'flex-start',
+  cardMain: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 12,
+    gap: 14,
   },
-  timeIcon: {
-    fontSize: 14,
+  timeContainer: {
+    minWidth: 60,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignItems: 'center',
   },
   timeText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
-  processionName: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-    marginBottom: 4,
-  },
-  brotherhood: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
-  details: {
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
+  brotherhoodLogo: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    transform: [{ rotate: '45deg' }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  detailIcon: {
-    fontSize: 14,
+  logoInner: {
+    transform: [{ rotate: '-45deg' }],
   },
-  detailText: {
-    fontSize: 13,
+  logoText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  infoContainer: {
     flex: 1,
+    gap: 4,
   },
-  description: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
+  processionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    lineHeight: 20,
+  },
+  parishName: {
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 16,
+  },
+  pasosBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  pasosNumber: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 20,
+  },
+  pasosLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
   },
   emptyState: {
     alignItems: 'center',
@@ -342,5 +429,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  loadingText: {
+    fontSize: 16,
   },
 });

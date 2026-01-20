@@ -16,8 +16,8 @@ export interface RouteResult {
   duration: number; // in seconds
 }
 
-// OSRM public demo server - for production use your own instance
-const OSRM_BASE_URL = 'https://router.project-osrm.org';
+// OSRM local server
+const OSRM_BASE_URL = 'http://localhost:1889';
 
 /**
  * Fetches a walking route from OSRM that follows real streets

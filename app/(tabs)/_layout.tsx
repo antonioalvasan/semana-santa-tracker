@@ -24,7 +24,7 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
-        name="index"
+        name="calendario"
         options={{
           title: 'Inicio',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
@@ -42,13 +42,6 @@ export default function TabLayout() {
         options={{
           title: 'Hermandades',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="calendario"
-        options={{
-          title: 'Calendario',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
         }}
       />
     </Tabs>
